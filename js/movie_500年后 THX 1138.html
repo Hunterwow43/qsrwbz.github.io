@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>500年后 THX 1138 - 科幻电影宇宙</title>
+    <style>
+        /* 全局样式 */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #000;
+            color: #ffffff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* 全屏背景视频样式 */
+        .bottom-video-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .bottom-video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            opacity: 0.5;
+        }
+
+        /* 导航栏 */
+        .navbar {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 1rem 0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+            transition: opacity 1s ease;
+        }
+        
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+        }
+        
+        .nav-title-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+        
+        .nav-title {
+            color: #ffffff;
+            font-size: 1.8rem;
+            margin: 0;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+            position: relative;
+            z-index: 2;
+        }
+        
+        .nav-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(4);
+            opacity: 1;
+            z-index: 1;
+            width: auto;
+            height: 100%;
+        }
+        
+        .nav-links {
+            display: flex;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .nav-links li {
+            margin-left: 2rem;
+        }
+        
+        .nav-links a {
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 1.1rem;
+            transition: color 0.3s ease;
+        }
+        
+        /* 全局链接样式 */
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+        
+        a:hover {
+            color: #00bfff;
+            text-shadow: 0 0 5px rgba(0, 191, 255, 0.7);
+        }
+        
+        .nav-links a:hover {
+            color: #00bfff;
+            text-shadow: 0 0 5px rgba(0, 191, 255, 0.7);
+        }
+        
+        /* 下拉菜单样式 */
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropbtn {
+            cursor: pointer;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+            min-width: 160px;
+            box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+            z-index: 1001;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        /* 移除hover触发，改为点击触发 */
+        .dropdown-content.show {
+            display: block;
+        }
+
+        /* 开关样式 */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+            padding: 10px 0;
+            cursor: pointer;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 12px;
+            right: 0;
+            width: 40px;
+            height: 20px;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 20px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #00bfff;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+
+        /* 返回主页按钮 */
+        .back-home-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: rgba(0, 191, 255, 0.8);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 0 20px rgba(0, 191, 255, 0.5);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .back-home-btn:hover {
+            background: rgba(0, 191, 255, 1);
+            transform: scale(1.1);
+            box-shadow: 0 0 30px rgba(0, 191, 255, 0.8);
+        }
+
+        /* 电影详情容器 */
+        .movie-details-container {
+            max-width: 1200px;
+            margin: 100px auto 50px;
+            padding: 0 20px;
+            z-index: 1;
+            position: relative;
+        }
+
+        /* 电影头部信息 */
+        .movie-header {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 40px;
+            margin-bottom: 50px;
+            padding: 30px;
+            background: rgba(10, 10, 15, 0.8);
+            border-radius: 12px;
+            box-shadow: 0 0 30px rgba(0, 191, 255, 0.1);
+            border: 1px solid rgba(0, 191, 255, 0.2);
+        }
+
+        .movie-poster {
+            flex: 0 0 auto;
+            max-width: 300px;
+        }
+
+        .movie-poster img {
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 0 30px rgba(0, 191, 255, 0.3);
+        }
+
+        .movie-info {
+            flex: 1;
+            min-width: 300px;
+            max-width: 600px;
+        }
+
+        .movie-title {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            color: rgba(255, 255, 255, 0.95);
+            text-shadow: 0 0 15px rgba(0, 191, 255, 0.5);
+        }
+
+        .movie-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .movie-tagline {
+            font-style: italic;
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            color: rgba(0, 191, 255, 0.8);
+            border-left: 3px solid rgba(0, 191, 255, 0.5);
+            padding-left: 20px;
+        }
+
+        .movie-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid rgba(0, 191, 255, 0.2);
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: rgba(0, 191, 255, 0.9);
+        }
+
+        /* 电影详情内容 */
+        .movie-content {
+            background: rgba(10, 10, 15, 0.8);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 0 30px rgba(0, 191, 255, 0.1);
+            border: 1px solid rgba(0, 191, 255, 0.2);
+        }
+
+        .content-section {
+            margin-bottom: 50px;
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: rgba(0, 191, 255, 0.9);
+            border-bottom: 2px solid rgba(0, 191, 255, 0.3);
+            padding-bottom: 10px;
+            display: inline-block;
+        }
+
+        .content-text {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 20px;
+        }
+
+        /* 演员列表 */
+        .cast-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .cast-member {
+            text-align: center;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(0, 191, 255, 0.2);
+        }
+
+        .cast-name {
+            font-weight: bold;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 5px;
+        }
+
+        .cast-character {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.9rem;
+        }
+
+        /* 技术规格 */
+        .tech-specs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .spec-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 191, 255, 0.2);
+        }
+
+        .spec-label {
+            font-weight: bold;
+            color: rgba(0, 191, 255, 0.8);
+            margin-bottom: 5px;
+        }
+
+        .spec-value {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* 影评部分 */
+        .reviews {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .review {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 191, 255, 0.2);
+        }
+
+        .reviewer {
+            font-weight: bold;
+            color: rgba(0, 191, 255, 0.8);
+            margin-bottom: 10px;
+        }
+
+        .review-content {
+            color: rgba(255, 255, 255, 0.7);
+            font-style: italic;
+            margin-bottom: 10px;
+        }
+
+        .review-rating {
+            color: #FFD700;
+            font-weight: bold;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .navbar ul {
+                flex-wrap: wrap;
+                height: auto;
+                padding: 10px 0;
+            }
+
+            .navbar li {
+                margin: 5px 10px;
+            }
+
+            .movie-header {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+                padding: 20px;
+            }
+
+            .movie-title {
+                font-size: 2rem;
+            }
+
+            .movie-poster {
+                max-width: 200px;
+            }
+
+            .movie-content {
+                padding: 20px;
+            }
+
+            .section-title {
+                font-size: 1.5rem;
+            }
+
+            .back-home-btn {
+                width: 50px;
+                height: 50px;
+                font-size: 20px;
+                bottom: 20px;
+                right: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 底部视频背景 -->
+    <div class="bottom-video-container">
+        <video id="bottomVideo" class="bottom-video" autoplay muted playsinline loop>
+            <source src="../sp/sy.mp4" type="video/mp4">
+            您的浏览器不支持视频播放
+        </video>
+    </div>
+
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-title-container">
+                <h1 class="nav-title">科幻电影宇宙</h1>
+                <img src="../sp/image.png" alt="图标" class="nav-icon">
+            </div>
+            <ul class="nav-links">
+                <li><a href="../index.html?from=movie">首页</a></li>
+                <li><a href="../movies.html">电影分类</a></li>
+                <li class="dropdown">
+                    <a href="#" class="dropbtn">设置</a>
+                    <div class="dropdown-content">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="skipAnimationToggle">
+                            <span class="slider"></span>
+                            关闭开始动画
+                        </label>
+                    </div>
+                </li>
+                <li><a href="#">关于我们</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- 电影详情容器 -->
+    <div class="movie-details-container">
+        <!-- 电影头部信息 -->
+        <div class="movie-header">
+            <div class="movie-poster">
+                <img src="../dy/500年后 THX 1138.png" alt="500年后 THX 1138">
+            </div>
+            <div class="movie-info">
+                <h1 class="movie-title">500年后 THX 1138</h1>
+                <div class="movie-meta">
+                    <span>导演：乔治·卢卡斯</span>
+                    <span>年份：1971</span>
+                    <span>类型：科幻 / 剧情</span>
+                    <span>时长：86分钟</span>
+                </div>
+                <div class="movie-tagline">在一个被严格控制的社会中，爱与情感是最大的禁忌</div>
+                <div class="movie-stats">
+                    <div class="stat-item">
+                        <div class="stat-label">IMDB评分</div>
+                        <div class="stat-value">6.8/10</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">豆瓣评分</div>
+                        <div class="stat-value">6.5/10</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">烂番茄</div>
+                        <div class="stat-value">87%</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Metacritic</div>
+                        <div class="stat-value">75/100</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 电影详情内容 -->
+        <div class="movie-content">
+            <!-- 剧情简介 -->
+            <div class="content-section">
+                <h2 class="section-title">剧情简介</h2>
+                <div class="content-text">
+                    《500年后 THX 1138》是乔治·卢卡斯的长篇导演处女作，描绘了一个未来地下社会的反乌托邦景象。在这个社会中，人类生活在地下城市，受到严格的监控和控制。
+                </div>
+                <div class="content-text">
+                    故事主角THX 1138是一名工厂工人，他的生活完全由计算机系统控制。在这个社会里，人们被要求定期服用镇静剂来抑制情感，性爱被严格禁止，而生育则通过人工受精完成。
+                </div>
+                <div class="content-text">
+                    THX 1138的室友LUH 3417停止服用镇静剂，并开始与THX发展感情关系。当他们的关系被发现后，THX被逮捕并关押。在监狱中，他遇到了其他试图逃离这个压抑社会的人。THX决定逃离这个地下世界，寻找传说中的地表世界。
+                </div>
+            </div>
+
+            <!-- 幕后制作 -->
+            <div class="content-section">
+                <h2 class="section-title">幕后制作</h2>
+                <div class="content-text">
+                    这部电影是乔治·卢卡斯根据他在南加州大学电影学院的短片《Electronic Labyrinth: THX 1138 4EB》扩展而成的。影片以其极简主义的视觉风格和冷峻的氛围而著称。
+                </div>
+                <div class="content-text">
+                    影片采用了一种独特的视觉风格，大量使用白色空间和极简布景，营造出一种无菌、冷漠的未来感。卢卡斯使用了当时先进的音效设计技术，创造出一种令人不安的环境音效，增强了影片的压抑氛围。
+                </div>
+                <div class="content-text">
+                    虽然这部电影在商业上并不成功，但它为卢卡斯后来的《星球大战》系列奠定了技术和叙事基础。华纳兄弟公司在卢卡斯拍摄《星球大战》成功后，重新发行了这部电影，并添加了一些特效场景。
+                </div>
+            </div>
+
+            <!-- 演员阵容 -->
+            <div class="content-section">
+                <h2 class="section-title">演员阵容</h2>
+                <div class="cast-list">
+                    <div class="cast-member">
+                        <div class="cast-name">罗伯特·杜瓦尔</div>
+                        <div class="cast-character">THX 1138</div>
+                    </div>
+                    <div class="cast-member">
+                        <div class="cast-name">唐纳德·普莱森斯</div>
+                        <div class="cast-character">SEN 5241</div>
+                    </div>
+                    <div class="cast-member">
+                        <div class="cast-name">唐·佩德罗·科利</div>
+                        <div class="cast-character">SRT</div>
+                    </div>
+                    <div class="cast-member">
+                        <div class="cast-name">玛吉·麦克欧米</div>
+                        <div class="cast-character">LUH 3417</div>
+                    </div>
+                    <div class="cast-member">
+                        <div class="cast-name">伊恩·沃尔夫</div>
+                        <div class="cast-character">PTO</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 主题与分析 -->
+            <div class="content-section">
+                <h2 class="section-title">主题与分析</h2>
+                <div class="content-text">
+                    《500年后 THX 1138》探讨了多个深刻的主题，包括个人自由与社会控制、人性的本质以及技术对人类生活的影响。
+                </div>
+                <div class="content-text">
+                    <strong>个人自由与社会控制</strong>：影片描绘了一个极端控制的社会，个人自由被完全剥夺。THX的逃亡象征着人类对自由的渴望和追求。
+                </div>
+                <div class="content-text">
+                    <strong>情感与人性</strong>：在这个社会中，情感被视为一种需要被抑制的威胁。THX和LUH之间的关系展示了情感和爱作为人类本质的重要性。
+                </div>
+                <div class="content-text">
+                    <strong>技术异化</strong>：影片展示了技术如何被用来控制和异化人类。无处不在的监控和计算机系统反映了卢卡斯对技术过度发展的担忧。
+                </div>
+                <div class="content-text">
+                    <strong>宗教与救赎</strong>：影片中有明显的宗教象征，如OMM0000的全息影像，它在这个社会中扮演着类似上帝的角色。THX的逃亡也可以被看作是一种寻求救赎的旅程。
+                </div>
+            </div>
+
+            <!-- 技术规格 -->
+            <div class="content-section">
+                <h2 class="section-title">技术规格</h2>
+                <div class="tech-specs">
+                    <div class="spec-item">
+                        <div class="spec-label">导演</div>
+                        <div class="spec-value">乔治·卢卡斯</div>
+                    </div>
+                    <div class="spec-item">
+                        <div class="spec-label">编剧</div>
+                        <div class="spec-value">乔治·卢卡斯, 沃尔特·默奇</div>
+                    </div>
+                    <div class="spec-item">
+                        <div class="spec-label">制片人</div>
+                        <div class="spec-value">弗朗西斯·福特·科波拉</div>
+                    </div>
+                    <div class="spec-item">
+                        <div class="spec-label">摄影</div>
+                        <div class="spec-value">大卫·迈尔斯, 阿尔伯特·凯尔尼</div>
+                    </div>
+                    <div class="spec-item">
+                        <div class="spec-label">配乐</div>
+                        <div class="spec-value">拉罗·斯齐弗林</div>
+                    </div>
+                    <div class="spec-item">
+                        <div class="spec-label">剪辑</div>
+                        <div class="spec-value">乔治·卢卡斯, 沃尔特·默奇</div>
+                    </div>
+                    <div class="spec-item">
+                        <div class="spec-label">制作公司</div>
+                        <div class="spec-value">华纳兄弟, American Zoetrope</div>
+                    </div>
+                    <div class="spec-item">
+                        <div class="spec-label">发行日期</div>
+                        <div class="spec-value">1971年3月11日</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 影评 -->
+            <div class="content-section">
+                <h2 class="section-title">影评</h2>
+                <div class="reviews">
+                    <div class="review">
+                        <div class="reviewer">罗杰·埃伯特</div>
+                        <div class="review-content">
+                            "卢卡斯创造了一个令人不安的未来世界，这个世界既冷漠又引人入胜。影片的视觉风格和音效设计堪称一流，为后来的科幻电影奠定了基础。"
+                        </div>
+                        <div class="review-rating">★★★★☆</div>
+                    </div>
+                    <div class="review">
+                        <div class="reviewer">纽约时报</div>
+                        <div class="review-content">
+                            "《500年后 THX 1138》是一部具有前瞻性的作品，它对技术社会的批判在今天看来仍然具有强烈的现实意义。"
+                        </div>
+                        <div class="review-rating">★★★★☆</div>
+                    </div>
+                    <div class="review">
+                        <div class="reviewer">帝国杂志</div>
+                        <div class="review-content">
+                            "虽然这部电影在商业上并不成功，但它是理解卢卡斯电影哲学的重要作品。它展示了一位年轻导演对未来的大胆想象。"
+                        </div>
+                        <div class="review-rating">★★★★☆</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 返回主页按钮 -->
+    <button class="back-home-btn" onclick="location.href='../index.html?from=movie'">🏠</button>
+
+    <script>
+        // 下拉菜单功能
+        document.querySelector('.dropbtn').addEventListener('click', function(e) {
+            e.preventDefault();
+            document.querySelector('.dropdown-content').classList.toggle('show');
+        });
+
+        // 点击其他地方关闭下拉菜单
+        window.addEventListener('click', function(e) {
+            if (!e.target.matches('.dropbtn')) {
+                var dropdowns = document.getElementsByClassName('dropdown-content');
+                for (var i = 0; i < dropdowns.length; i++) {
+                    var openDropdown = dropdowns[i];
+                    if (openDropdown.classList.contains('show')) {
+                        openDropdown.classList.remove('show');
+                    }
+                }
+            }
+        });
+
+        // 导航栏滚动效果
+        window.addEventListener('scroll', function() {
+            const navbar = document.querySelector('.navbar');
+            if (window.scrollY > 50) {
+                navbar.style.opacity = '0.9';
+            } else {
+                navbar.style.opacity = '1';
+            }
+        });
+
+        // 动画关闭开关
+        document.getElementById('skipAnimationToggle').addEventListener('change', function() {
+            const video = document.getElementById('bottomVideo');
+            if (this.checked) {
+                video.pause();
+                video.style.display = 'none';
+            } else {
+                video.play();
+                video.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>

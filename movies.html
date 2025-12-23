@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>电影分类 - 科幻电影宇宙</title>
+    <style>
+        /* 全局样式重置 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #000;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        /* 导航栏 */
+        .navbar {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 1rem 0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+            opacity: 1;
+        }
+        
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+        }
+        
+        .nav-title-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+        
+        .nav-title {
+            color: #ffffff;
+            font-size: 1.8rem;
+            margin: 0;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+            position: relative;
+            z-index: 2;
+        }
+        
+        .nav-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(4);
+            opacity: 1;
+            z-index: 1;
+            width: auto;
+            height: 100%;
+        }
+        
+        .nav-links {
+            display: flex;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .nav-links li {
+            margin-left: 2rem;
+        }
+        
+        .nav-links a {
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 1.1rem;
+            transition: color 0.3s ease;
+        }
+        
+        .nav-links a:hover {
+            color: #00bfff;
+            text-shadow: 0 0 5px rgba(0, 191, 255, 0.7);
+        }
+
+        /* 下拉菜单样式 */
+        .dropdown {
+            position: relative;
+            display: inline-block;
+            z-index: 10000; /* 为整个下拉容器设置高z-index */
+        }
+
+        .dropbtn {
+            cursor: pointer;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+            min-width: 160px;
+            box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+            z-index: 99999; /* 大幅提高z-index确保显示在最上层 */
+            padding: 10px;
+            border-radius: 5px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        /* 特别提高更多下拉菜单的z-index */
+        #tagsDropdown {
+            z-index: 99999 !important; /* 使用更高的z-index值 */
+        }
+
+        /* 移除hover触发，改为点击触发 */
+        .dropdown-content.show {
+            display: block;
+        }
+
+        /* 下拉菜单筛选按钮样式 */
+        .dropdown-filter-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #fff;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            margin: 0.25rem 0;
+            width: 100%;
+            text-align: left;
+        }
+
+        .dropdown-filter-btn:hover {
+            background: rgba(0, 191, 255, 0.3);
+            border-color: #00bfff;
+        }
+
+        .dropdown-filter-btn.active {
+            background: rgba(0, 191, 255, 0.3);
+            border-color: #00bfff;
+        }
+
+        /* 下拉菜单滚动条样式 */
+        .dropdown-content::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .dropdown-content::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+        }
+
+        .dropdown-content::-webkit-scrollbar-thumb {
+            background: rgba(0, 191, 255, 0.5);
+            border-radius: 5px;
+        }
+
+        .dropdown-content::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 191, 255, 0.7);
+        }
+
+        /* 开关样式 */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+            padding: 10px 0;
+            cursor: pointer;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 12px;
+            right: 0;
+            width: 40px;
+            height: 20px;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 20px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #00bfff;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+
+        /* 主内容区域 */
+        .main-content {
+            min-height: 100vh;
+            background: rgba(0, 0, 0, 0.7);
+            color: #ffffff;
+            padding-top: 120px;
+            z-index: 1;
+            position: relative;
+        }
+
+        /* 筛选控件 */
+        .filter-container {
+            max-width: 1200px;
+            margin: 0 auto 2rem;
+            padding: 0 2rem;
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+            position: relative;
+            z-index: 100; /* 设置适中的z-index，确保下拉菜单可以显示在上方 */
+        }
+
+        .filter-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .filter-title {
+            font-size: 1rem;
+            font-weight: bold;
+            color: #00bfff;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .filter-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #fff;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .filter-btn:hover, .filter-btn.active {
+            background: rgba(0, 191, 255, 0.3);
+            border-color: #00bfff;
+        }
+
+        .sort-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .sort-select {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #fff;
+            padding: 0.5rem;
+            border-radius: 5px;
+            font-size: 0.9rem;
+        }
+
+        .sort-select option {
+            background: #333;
+            color: #fff;
+        }
+
+        /* 电影网格 */
+        .movies-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.8s ease 0.3s, transform 0.8s ease 0.3s;
+        }
+
+        .movie-card-container {
+            position: relative;
+            width: 100%;
+            max-width: 180px;
+            height: 300px; /* 增加高度以容纳标题 */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .movie-card {
+            position: relative;
+            width: 100%;
+            max-width: 180px;
+            height: 270px; /* 固定高度，保持16:9比例 */
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            overflow: hidden;
+            z-index: 1; /* 确保电影卡片不会覆盖下拉菜单 */
+        }
+
+        .movies-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 2rem;
+            justify-items: center;
+            z-index: 1; /* 为整个网格设置低z-index */
+        }
+
+        .movie-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .movie-poster {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* 保持图片比例，填充容器 */
+            object-position: center; /* 确保图片居中显示 */
+            border-radius: 8px;
+            display: block;
+        }
+
+        .movie-title {
+            text-align: center;
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            position: relative; /* 改为相对定位 */
+            width: 100%; /* 确保宽度占满容器 */
+            color: rgba(255, 255, 255, 0.95);
+            text-shadow: 0 0 5px rgba(0, 191, 255, 0.5);
+        }
+
+        /* 电影卡片链接样式 */
+        .movies-grid a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        /* 标签容器 */
+        .tags-container {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 16.67%; /* 占图片下方1/6 */
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            overflow-x: auto;
+            overflow-y: hidden;
+            border-radius: 0 0 8px 8px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .movie-card:hover .tags-container {
+            opacity: 1;
+        }
+
+        .tags-wrapper {
+            display: flex;
+            gap: 0.5rem;
+            padding: 0 0.5rem;
+            white-space: nowrap;
+        }
+
+        .movie-tag {
+            background: rgba(128, 128, 128, 0.7);
+            color: #fff;
+            padding: 0.25rem 0.5rem;
+            border-radius: 15px;
+            font-size: 0.7rem;
+            white-space: nowrap;
+        }
+
+        /* 全屏背景视频样式 */
+        .bottom-video-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .bottom-video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            opacity: 0.5;
+        }
+
+        /* 滚动条样式 */
+        .tags-container::-webkit-scrollbar {
+            height: 3px;
+        }
+
+        .tags-container::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .tags-container::-webkit-scrollbar-thumb {
+            background: rgba(0, 191, 255, 0.5);
+            border-radius: 3px;
+        }
+
+        .tags-container::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 191, 255, 0.7);
+        }
+    </style>
+</head>
+<body>
+    <!-- 全屏背景视频 -->
+    <div class="bottom-video-container">
+        <video id="bottomVideo" class="bottom-video" autoplay muted playsinline loop>
+            <source src="sp/sy.mp4" type="video/mp4">
+            您的浏览器不支持视频播放
+        </video>
+    </div>
+
+    <!-- 新界面 -->
+    <div class="main-content">
+        <!-- 导航栏 -->
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="nav-title-container">
+                    <h1 class="nav-title">科幻电影宇宙</h1>
+                    <img src="sp/image.png" alt="图标" class="nav-icon">
+                </div>
+                <ul class="nav-links">
+                    <li><a href="index.html">首页</a></li>
+                    <li><a href="movies.html">电影分类</a></li>
+                    <li class="dropdown">
+                        <a href="#" class="dropbtn">设置</a>
+                        <div class="dropdown-content">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="skipAnimationToggle">
+                                <span class="slider"></span>
+                                关闭开始动画
+                            </label>
+                        </div>
+                    </li>
+                    <li><a href="#" id="aboutUsLink">关于我们</a></li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- 筛选控件 -->
+        <div class="filter-container">
+            <div class="filter-section">
+                <span class="filter-title">分类：</span>
+                <div class="filter-buttons">
+                    <button class="filter-btn active" data-filter="all">全部</button>
+                    <button class="filter-btn" data-filter="popular">热度</button>
+                    <button class="filter-btn" data-filter="time">时间</button>
+                    <div class="dropdown">
+                        <button class="filter-btn dropbtn" data-filter="more">更多</button>
+                        <div class="dropdown-content" id="tagsDropdown" style="z-index: 99999 !important; position: absolute;">
+                            <button class="dropdown-filter-btn" data-tag="经典">经典</button>
+                            <button class="dropdown-filter-btn" data-tag="哲学">哲学</button>
+                            <button class="dropdown-filter-btn" data-tag="反乌托邦">反乌托邦</button>
+                            <button class="dropdown-filter-btn" data-tag="剧情">剧情</button>
+                            <button class="dropdown-filter-btn" data-tag="冒险">冒险</button>
+                            <button class="dropdown-filter-btn" data-tag="家庭">家庭</button>
+                            <button class="dropdown-filter-btn" data-tag="情感">情感</button>
+                            <button class="dropdown-filter-btn" data-tag="惊悚">惊悚</button>
+                            <button class="dropdown-filter-btn" data-tag="动作">动作</button>
+                            <button class="dropdown-filter-btn" data-tag="悬疑">悬疑</button>
+                            <button class="dropdown-filter-btn" data-tag="励志">励志</button>
+                            <button class="dropdown-filter-btn" data-tag="恐怖">恐怖</button>
+                            <button class="dropdown-filter-btn" data-tag="西部">西部</button>
+                            <button class="dropdown-filter-btn" data-tag="喜剧">喜剧</button>
+                            <button class="dropdown-filter-btn" data-tag="奇幻">奇幻</button>
+                            <button class="dropdown-filter-btn" data-tag="动画">动画</button>
+                            <button class="dropdown-filter-btn" data-tag="犯罪">犯罪</button>
+                            <button class="dropdown-filter-btn" data-tag="战争">战争</button>
+                            <button class="dropdown-filter-btn" data-tag="爱情">爱情</button>
+                            <button class="dropdown-filter-btn" data-tag="灾难">灾难</button>
+                            <button class="dropdown-filter-btn" data-tag="短片">短片</button>
+                            <button class="dropdown-filter-btn" data-tag="怪兽">怪兽</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="sort-container">
+                <span class="filter-title">排序：</span>
+                <select class="sort-select" id="sortSelect">
+                    <option value="asc">升序</option>
+                    <option value="desc">降序</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- 电影网格 -->
+        <div class="movies-container">
+            <div class="movies-grid" id="moviesGrid">
+                <!-- 电影卡片将通过JavaScript动态生成 -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 页面加载完成后执行
+        window.addEventListener('DOMContentLoaded', function() {
+            // 检查是否需要跳过动画
+            const skipAnimation = localStorage.getItem('skipAnimation') === 'true';
+            
+            // 获取开关元素
+            const skipAnimationToggle = document.getElementById('skipAnimationToggle');
+            
+            // 设置开关初始状态
+            if (skipAnimationToggle) {
+                skipAnimationToggle.checked = skipAnimation;
+                
+                // 添加开关事件监听器
+                skipAnimationToggle.addEventListener('change', function() {
+                    localStorage.setItem('skipAnimation', this.checked);
+                    
+                    // 控制视频显示 - 不再隐藏视频，只控制动画
+                    // 视频应该始终播放，不受开关影响
+                });
+            }
+            
+            // 初始化视频显示状态 - 不再根据开关状态隐藏视频
+            // 视频应该始终播放，不受开关影响
+            // const video = document.getElementById('bottomVideo');
+            // if (video && skipAnimation) {
+            //     video.style.display = 'none';
+            // }
+            
+            // 触发缓慢浮现动画
+            const filterContainer = document.querySelector('.filter-container');
+            const moviesContainer = document.querySelector('.movies-container');
+            
+            // 确保初始状态正确
+            if (filterContainer) {
+                filterContainer.style.opacity = '0';
+                filterContainer.style.transform = 'translateY(20px)';
+            }
+            
+            if (moviesContainer) {
+                moviesContainer.style.opacity = '0';
+                moviesContainer.style.transform = 'translateY(20px)';
+            }
+            
+            if (!skipAnimation) {
+                // 延迟触发动画，确保页面已完全加载
+                setTimeout(() => {
+                    if (filterContainer) {
+                        filterContainer.style.opacity = '1';
+                        filterContainer.style.transform = 'translateY(0)';
+                    }
+                    
+                    if (moviesContainer) {
+                        moviesContainer.style.opacity = '1';
+                        moviesContainer.style.transform = 'translateY(0)';
+                    }
+                }, 100);
+            } else {
+                // 如果跳过动画，直接显示内容
+                if (filterContainer) {
+                    filterContainer.style.opacity = '1';
+                    filterContainer.style.transform = 'translateY(0)';
+                }
+                
+                if (moviesContainer) {
+                    moviesContainer.style.opacity = '1';
+                    moviesContainer.style.transform = 'translateY(0)';
+                }
+            }
+        });
+
+        // 点击触发下拉菜单
+        document.addEventListener('DOMContentLoaded', function() {
+            // 获取所有的下拉按钮和内容
+            const dropbtns = document.querySelectorAll('.dropbtn');
+            const dropdownContents = document.querySelectorAll('.dropdown-content');
+            
+            if (dropbtns.length > 0 && dropdownContents.length > 0) {
+                // 为每个下拉按钮添加点击事件
+                dropbtns.forEach((dropbtn, index) => {
+                    dropbtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        // 切换当前下拉菜单的显示状态
+                        dropdownContents[index].classList.toggle('show');
+                        // 关闭其他下拉菜单
+                        dropdownContents.forEach((content, i) => {
+                            if (i !== index) {
+                                content.classList.remove('show');
+                            }
+                        });
+                    });
+                });
+                
+                // 点击页面其他地方关闭所有下拉菜单
+                document.addEventListener('click', function(e) {
+                    if (!e.target.closest('.dropdown')) {
+                        dropdownContents.forEach(content => {
+                            content.classList.remove('show');
+                        });
+                    }
+                });
+            }
+        });
+
+        // 电影信息数据结构
+        const movies = [
+            { poster: '2001太空漫游.png', title: '2001太空漫游', director: '斯坦利·库布里克', year: '1968', description: '人类文明与外星智慧的史诗对话，探索宇宙、生命和人工智能的哲学命题。', tags: ['科幻', '经典', '哲学'] },
+            { poster: '500年后 THX 1138.png', title: '500年后 THX 1138', director: '乔治·卢卡斯', year: '1971', description: '在反乌托邦未来，一个工人试图逃脱严格控制的社会，探索自由与人性的边界。', tags: ['科幻', '反乌托邦', '剧情'] },
+            { poster: 'E.T.外星人.png', title: 'E.T.外星人', director: '史蒂文·斯皮尔伯格', year: '1982', description: '一个孤独的男孩与被困地球的友好外星人建立深厚友谊，共同寻找回家之路。', tags: ['科幻', '冒险', '家庭'] },
+            { poster: '人工智能.png', title: '人工智能', director: '史蒂文·斯皮尔伯格', year: '2001', description: '未来世界中，一个具有情感的机器人男孩渴望成为真正的人类，踏上漫长的寻找之旅。', tags: ['科幻', '剧情', '情感'] },
+            { poster: '人猿星球.png', title: '人猿星球', director: '富兰克林·沙夫纳', year: '1968', description: '宇航员降落在一个由智能猿类统治的星球，发现人类沦为奴隶的可怕现实。', tags: ['科幻', '冒险', '经典'] },
+            { poster: '人类之子.png', title: '人类之子', director: '阿方索·卡隆', year: '2006', description: '2027年人类失去生育能力，一个年轻人保护世界上最后一个孕妇的惊险旅程。', tags: ['科幻', '惊悚', '剧情'] },
+            { poster: '侏罗纪公园.png', title: '侏罗纪公园', director: '史蒂文·斯皮尔伯格', year: '1993', description: '科学家克隆恐龙建立主题公园，却因意外失控引发灾难，人类与史前巨兽的对决。', tags: ['科幻', '冒险', '动作'] },
+            { poster: '全面回忆.png', title: '全面回忆', director: '保罗·范霍文', year: '1990', description: '一个平凡工人发现自己可能是记忆被篡改的特工，卷入火星殖民地的阴谋。', tags: ['科幻', '动作', '惊悚'] },
+            { poster: '初始者.png', title: '初始者', director: '克里斯托弗·诺兰', year: '2006', description: '一群窃贼进入他人梦境窃取秘密，却面临着比现实更危险的潜意识世界。', tags: ['科幻', '悬疑', '动作'] },
+            { poster: '十二只猴子.png', title: '十二只猴子', director: '特瑞·吉列姆', year: '1995', description: '未来囚犯穿越回过去阻止致命病毒爆发，却陷入时间循环的悖论之中。', tags: ['科幻', '悬疑', '剧情'] },
+            { poster: '千钧一发.png', title: '千钧一发', director: '安德鲁·尼科尔', year: '1997', description: '在基因歧视的未来，一个天生缺陷的人冒用他人身份追逐太空梦想。', tags: ['科幻', '剧情', '励志'] },
+            { poster: '卡里加里博士的小屋.png', title: '卡里加里博士的小屋', director: '罗伯特·威恩', year: '1920', description: '德国表现主义经典，讲述一个催眠师操控病人犯罪的惊悚故事。', tags: ['科幻', '恐怖', '经典'] },
+            { poster: '发条橙.png', title: '发条橙', director: '斯坦利·库布里克', year: '1971', description: '一个暴力青年接受行为矫正实验，却失去自由意志的反乌托邦寓言。', tags: ['科幻', '剧情', '犯罪'] },
+            { poster: '哥斯拉.png', title: '哥斯拉', director: '本多猪四郎', year: '1954', description: '核辐射唤醒远古巨兽，对东京造成毁灭性破坏，反思人类对自然的破坏。', tags: ['科幻', '怪兽', '经典'] },
+            { poster: '回到未来.png', title: '回到未来', director: '罗伯特·泽米吉斯', year: '1985', description: '高中生意外穿越回30年前，帮助年轻的父母相恋，避免自己消失的冒险。', tags: ['科幻', '冒险', '喜剧'] },
+            { poster: '地心引力.png', title: '地心引力', director: '阿方索·卡隆', year: '2013', description: '太空站事故后，一名女宇航员独自在太空中挣扎求生，展现人类的坚韧与勇气。', tags: ['科幻', '惊悚', '冒险'] },
+            { poster: '地球停转之日.png', title: '地球停转之日', director: '罗伯特·怀斯', year: '1951', description: '外星使者降临地球警告人类停止战争，否则将面临毁灭的威胁。', tags: ['科幻', '剧情', '经典'] },
+            { poster: '大都会.png', title: '大都会', director: '弗里茨·朗', year: '1927', description: '科幻电影的里程碑，描绘了贫富悬殊的未来城市中工人与统治阶级的冲突。', tags: ['科幻', '剧情', '经典'] },
+            { poster: '天外魔花.png', title: '天外魔花', director: '唐·希格尔', year: '1956', description: '外星植物入侵小镇，取代人类意识，一个医生试图揭露真相拯救世界。', tags: ['科幻', '恐怖', '经典'] },
+            { poster: '头号玩家.png', title: '头号玩家', director: '史蒂文·斯皮尔伯格', year: '2018', description: '2045年人类沉迷虚拟世界，一个少年寻找隐藏彩蛋，揭示游戏背后的秘密。', tags: ['科幻', '冒险', '动作'] },
+            { poster: '奇幻航程.png', title: '奇幻航程', director: '理查德·弗莱彻', year: '1966', description: '科学家缩小后进入人体内部，修复受损大脑的科幻冒险故事。', tags: ['科幻', '冒险', '经典'] },
+            { poster: '妙想天开.png', title: '妙想天开', director: '特瑞·吉列姆', year: '1985', description: '在官僚主义极端的未来，一个小职员因偶然事件被卷入巨大阴谋。', tags: ['科幻', '喜剧', '奇幻'] },
+            { poster: '少数派报告.png', title: '少数派报告', director: '史蒂文·斯皮尔伯格', year: '2002', description: '预防犯罪部门的负责人被预测将犯罪，他必须证明自己的清白并揭露系统漏洞。', tags: ['科幻', '动作', '惊悚'] },
+            { poster: '异形.png', title: '异形', director: '雷德利·斯科特', year: '1979', description: '太空船员在未知星球发现致命异形，陷入生存危机的恐怖科幻片。', tags: ['科幻', '恐怖', '惊悚'] },
+            { poster: '异形2.png', title: '异形2', director: '詹姆斯·卡梅隆', year: '1986', description: '艾伦·雷普利重返异形星球，与海军陆战队共同对抗更强大的异形群体。', tags: ['科幻', '动作', '恐怖'] },
+            { poster: '怪形.png', title: '怪形', director: '约翰·卡朋特', year: '1982', description: '南极科考队遭遇能模仿其他生物的外星生物，团队陷入信任危机。', tags: ['科幻', '恐怖', '惊悚'] },
+            { poster: '我不能死.png', title: '我不能死', director: '迈克尔·安德森', year: '1976', description: '未来人类被限制在30岁死亡，一个反叛者试图寻找传说中的"逃亡者"。', tags: ['科幻', '冒险', '剧情'] },
+            { poster: '时空大挪移.png', title: '时空大挪移', director: '乔治·帕尔', year: '1960', description: '根据威尔斯小说改编，讲述时间旅行者从19世纪到802701年的冒险。', tags: ['科幻', '冒险', '经典'] },
+            { poster: '星河战队.png', title: '星河战队', director: '保罗·范霍文', year: '1997', description: '人类与外星虫族展开大规模战争，一个年轻士兵在战斗中成长的故事。', tags: ['科幻', '动作', '战争'] },
+            { poster: '星球大战.png', title: '星球大战', director: '乔治·卢卡斯', year: '1977', description: '反抗军与邪恶帝国的宇宙战争，年轻农场男孩发现自己的原力天赋。', tags: ['科幻', '冒险', '动作'] },
+            { poster: '星球大战：帝国反击战.png', title: '星球大战：帝国反击战', director: '欧文·克什纳', year: '1980', description: '反抗军遭受重创，卢克开始接受绝地训练，却发现关于父亲的惊人真相。', tags: ['科幻', '冒险', '动作'] },
+            { poster: '星际穿越.png', title: '星际穿越', director: '克里斯托弗·诺兰', year: '2014', description: '宇航员穿越虫洞寻找新家园，面对时间膨胀和宇宙未知的挑战。', tags: ['科幻', '冒险', '剧情'] },
+            { poster: '暖暖内含光.png', title: '暖暖内含光', director: '米歇尔·贡德里', year: '2004', description: '一对恋人决定消除彼此的记忆，却在过程中重新发现爱的珍贵。', tags: ['科幻', '爱情', '剧情'] },
+            { poster: '月球.png', title: '月球', director: '邓肯·琼斯', year: '2009', description: '月球矿工发现自己并非唯一，揭开公司惊天秘密的孤独科幻故事。', tags: ['科幻', '剧情', '悬疑'] },
+            { poster: '月球旅行记.png', title: '月球旅行记', director: '乔治·梅里爱', year: '1902', description: '电影史上第一部科幻片，讲述天文学家乘坐炮弹前往月球的奇幻冒险。', tags: ['科幻', '冒险', '经典'] },
+            { poster: '月里嫦娥.png', title: '月里嫦娥', director: '欧文·皮切尔', year: '1904', description: '早期科幻短片，描绘一个男人被月球居民绑架并经历的奇幻遭遇。', tags: ['科幻', '短片', '经典'] },
+            { poster: '机器人总动员.png', title: '机器人总动员', director: '安德鲁·斯坦顿', year: '2008', description: '孤独的清理机器人瓦力与未来机器人伊芙相遇，展开拯救人类的太空之旅。', tags: ['科幻', '动画', '冒险'] },
+            { poster: '机械战警.png', title: '机械战警', director: '保罗·范霍文', year: '1987', description: '被杀害的警察被改造成机械战警，在底特律打击犯罪并寻找身份认同。', tags: ['科幻', '动作', '犯罪'] },
+            { poster: '沙丘.png', title: '沙丘', director: '丹尼斯·维伦纽瓦', year: '2021', description: '贵族青年保罗·厄崔迪前往沙漠星球厄拉科斯，成为命运的预言者。', tags: ['科幻', '冒险', '剧情'] },
+            { poster: '流浪地球.png', title: '流浪地球', director: '郭帆', year: '2019', description: '太阳即将毁灭，人类推动地球寻找新家园，面临宇宙中的种种挑战。', tags: ['科幻', '冒险', '灾难'] },
+            { poster: '海底两万里.png', title: '海底两万里', director: '理查德·弗莱彻', year: '1954', description: '根据凡尔纳小说改编，讲述尼莫船长驾驶鹦鹉螺号潜艇的海底冒险。', tags: ['科幻', '冒险', '经典'] },
+            { poster: '潜行者.png', title: '潜行者', director: '安德烈·塔可夫斯基', year: '1979', description: '一个"潜行者"带领两人进入神秘的"区域"，寻找能实现愿望的房间。', tags: ['科幻', '剧情', '奇幻'] },
+            { poster: '火星人入侵记.png', title: '火星人入侵记', director: '拜伦·哈斯金', year: '1953', description: '火星人入侵地球，人类面临灭绝危机，展现人类的勇气与坚韧。', tags: ['科幻', '战争', '经典'] },
+            { poster: '火星女王艾莉塔.png', title: '火星女王艾莉塔', director: '雅科夫·普洛塔赞诺夫', year: '1924', description: '苏联早期科幻片，讲述地球工程师在火星与女王艾莉塔的爱情故事。', tags: ['科幻', '爱情', '经典'] },
+            { poster: '火星救援.png', title: '火星救援', director: '雷德利·斯科特', year: '2015', description: '宇航员被遗留在火星，利用科学知识和意志力独自生存等待救援。', tags: ['科幻', '冒险', '剧情'] },
+            { poster: '疯狂的麦克斯.png', title: '疯狂的麦克斯', director: '乔治·米勒', year: '1979', description: '核战后的澳大利亚，一个前警察在沙漠中追捕杀害他家人的飞车党。', tags: ['科幻', '动作', '冒险'] },
+            { poster: '登陆月球.png', title: '登陆月球', director: '欧文·皮切尔', year: '1919', description: '早期科幻短片，描绘了人类第一次登陆月球的冒险经历。', tags: ['科幻', '短片', '经典'] },
+            { poster: '盗梦空间.png', title: '盗梦空间', director: '克里斯托弗·诺兰', year: '2010', description: '专业窃贼进入他人梦境窃取或植入思想，面临潜意识深处的危险。', tags: ['科幻', '动作', '悬疑'] },
+            { poster: '瞬息全宇宙.png', title: '瞬息全宇宙', director: '关家永、丹尼尔·施纳特', year: '2022', description: '一个普通主妇发现自己能连接到平行宇宙的自己，拯救多元宇宙的疯狂冒险。', tags: ['科幻', '喜剧', '冒险'] },
+            { poster: '神奇旅程.png', title: '神奇旅程', director: '理查德·弗莱彻', year: '1966', description: '科学家缩小后进入人体修复受损血管，展开微观世界的冒险。', tags: ['科幻', '冒险', '经典'] },
+            { poster: '禁忌星球.png', title: '禁忌星球', director: '弗雷德·威尔科克斯', year: '1956', description: '太空船抵达神秘星球，发现古代文明遗迹和潜伏的未知威胁。', tags: ['科幻', '冒险', '经典'] },
+            { poster: '科学怪人.png', title: '科学怪人', director: 'J. Searle Dawley', year: '1910', description: '第一部科学怪人电影改编，讲述弗兰肯斯坦创造生命并最终毁灭它的故事。', tags: ['科幻', '恐怖', '经典'] },
+            { poster: '科学怪人1931.png', title: '科学怪人1931', director: '詹姆斯·怀勒', year: '1931', description: '经典恐怖科幻片，描绘科学家创造的怪物在人类世界的悲惨遭遇。', tags: ['科幻', '恐怖', '经典'] },
+            { poster: '移魂都市.png', title: '移魂都市', director: '亚历克斯·普罗亚斯', year: '1998', description: '一个男人醒来失去记忆，发现整个城市在夜晚被神秘力量改变。', tags: ['科幻', '悬疑', '惊悚'] },
+            { poster: '笃定发生.png', title: '笃定发生', director: '威廉·卡梅伦·孟席斯', year: '1936', description: '根据威尔斯小说改编，预测1936年到2036年的未来世界发展。', tags: ['科幻', '剧情', '经典'] },
+            { poster: '第三类接触.png', title: '第三类接触', director: '史蒂文·斯皮尔伯格', year: '1977', description: '普通人与外星文明的接触经历，探索宇宙中生命存在的可能性。', tags: ['科幻', '剧情', '冒险'] },
+            { poster: '终结者.png', title: '终结者', director: '詹姆斯·卡梅隆', year: '1984', description: '未来机器人被派回过去刺杀人类领袖的母亲，一个士兵穿越保护她。', tags: ['科幻', '动作', '惊悚'] },
+            { poster: '终结者2：审判日.png', title: '终结者2：审判日', director: '詹姆斯·卡梅隆', year: '1991', description: '一个更先进的终结者被派回保护少年时期的人类领袖，与T-800并肩作战。', tags: ['科幻', '动作', '惊悚'] },
+            { poster: '蝙蝠侠：侠影之谜.png', title: '蝙蝠侠：侠影之谜', director: '克里斯托弗·诺兰', year: '2005', description: '蝙蝠侠的起源故事，讲述布鲁斯·韦恩如何成为哥谭市的黑暗骑士。', tags: ['科幻', '动作', '剧情'] },
+            { poster: '西部世界.png', title: '西部世界', director: '迈克尔·克莱顿', year: '1973', description: '未来主题公园的机器人开始失控，游客们陷入生存危机。', tags: ['科幻', '西部', '惊悚'] },
+            { poster: '迪布博士的疯狂.png', title: '迪布博士的疯狂', director: '维托里奥·德·西卡', year: '1961', description: '一个科学家发明了能让人变年轻的机器，却引发了意想不到的后果。', tags: ['科幻', '喜剧', '剧情'] },
+            { poster: '金刚.png', title: '金刚', director: '梅里安·C·库珀', year: '1933', description: '骷髅岛上的巨型猩猩被带回纽约展览，却在城市中逃脱，展现了经典的怪兽电影魅力。', tags: ['科幻', '冒险', '经典'] },
+            { poster: '银翼杀手.png', title: '银翼杀手', director: '雷德利·斯科特', year: '1982', description: '未来世界中，一名"银翼杀手"负责追捕失控的复制人，探讨人性与身份的哲学命题。', tags: ['科幻', '剧情', '悬疑'] },
+            { poster: '银翼杀手2049.png', title: '银翼杀手2049', director: '丹尼斯·维伦纽瓦', year: '2017', description: '新一代银翼杀手K发现了一个可能颠覆社会秩序的秘密，踏上寻找前银翼杀手的旅程。', tags: ['科幻', '剧情', '悬疑'] },
+            { poster: '阿凡达.png', title: '阿凡达', director: '詹姆斯·卡梅隆', year: '2009', description: '人类在潘多拉星球采矿，一名受伤士兵通过阿凡达与纳美人建立联系，最终选择保护这个星球。', tags: ['科幻', '冒险', '动作'] },
+            { poster: '阿基拉.png', title: '阿基拉', director: '大友克洋', year: '1988', description: '未来东京，少年铁雄获得超能力却逐渐失控，展现了日本动画在科幻领域的经典之作。', tags: ['科幻', '动画', '剧情'] },
+            { poster: '阿尔法城.png', title: '阿尔法城', director: '让-吕克·戈达尔', year: '1965', description: '特工前往阿尔法城执行任务，发现这里是一个禁止情感和艺术的极权社会。', tags: ['科幻', '剧情', '悬疑'] },
+            { poster: '降临.png', title: '降临', director: '丹尼斯·维伦纽瓦', year: '2016', description: '外星飞船降临地球，语言学家努力破译外星语言，同时逐渐理解了时间的真谛。', tags: ['科幻', '剧情', '悬疑'] },
+            { poster: '飞向太空.png', title: '飞向太空', director: '安德烈·塔可夫斯基', year: '1972', description: '科学家前往神秘的索拉里斯星球，发现这个星球能投射人类最深层的记忆和情感。', tags: ['科幻', '剧情', '哲学'] },
+            { poster: '黑客帝国.png', title: '黑客帝国', director: '莉莉·沃卓斯基、拉娜·沃卓斯基', year: '1999', description: '程序员尼奥发现现实是虚拟的，加入反抗机器统治的战斗，开启了科幻动作片的新纪元。', tags: ['科幻', '动作', '哲学'] }
+        ];
+
+        // 渲染电影网格
+        function renderMovies(movieList) {
+            const moviesGrid = document.getElementById('moviesGrid');
+            moviesGrid.innerHTML = '';
+
+            movieList.forEach(movie => {
+                // 创建容器
+                const container = document.createElement('div');
+                container.className = 'movie-card-container';
+                
+                // 创建链接元素
+                let linkElement;
+                const movieTitle = movie.title.replace(/[:：]/g, ''); // 移除冒号以避免文件名问题
+                linkElement = document.createElement('a');
+                linkElement.href = `js/movie_${movieTitle}.html`;
+
+                const movieCard = document.createElement('div');
+                movieCard.className = 'movie-card';
+
+                // 创建海报图片
+                const img = document.createElement('img');
+                img.src = `dy/${movie.poster}`;
+                img.alt = movie.title;
+                img.className = 'movie-poster';
+
+                // 创建标签容器
+                const tagsContainer = document.createElement('div');
+                tagsContainer.className = 'tags-container';
+
+                // 创建标签包装器
+                const tagsWrapper = document.createElement('div');
+                tagsWrapper.className = 'tags-wrapper';
+
+                // 创建年份标签（添加到最前面）
+                const yearTag = document.createElement('span');
+                yearTag.className = 'movie-tag';
+                yearTag.textContent = movie.year;
+                tagsWrapper.appendChild(yearTag);
+
+                // 创建电影标签
+                movie.tags.forEach(tag => {
+                    const tagElement = document.createElement('span');
+                    tagElement.className = 'movie-tag';
+                    tagElement.textContent = tag;
+                    tagsWrapper.appendChild(tagElement);
+                });
+
+                tagsContainer.appendChild(tagsWrapper);
+                movieCard.appendChild(img);
+                movieCard.appendChild(tagsContainer);
+                
+                // 创建标题
+                const title = document.createElement('div');
+                title.className = 'movie-title';
+                title.textContent = movie.title;
+
+                // 组装元素
+                container.appendChild(movieCard);
+                container.appendChild(title);
+
+                // 将容器包装在链接中
+                linkElement.appendChild(container);
+                moviesGrid.appendChild(linkElement);
+            });
+        }
+
+        // 筛选和排序功能
+        function initFilters() {
+            const filterBtns = document.querySelectorAll('.filter-btn');
+            const tagFilterBtns = document.querySelectorAll('.dropdown-filter-btn');
+            const sortSelect = document.getElementById('sortSelect');
+            let currentFilter = 'all';
+            let currentSort = 'asc';
+            let currentTag = null;
+
+            // 分类筛选按钮事件
+            filterBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // 更新活动状态
+                    filterBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentFilter = btn.dataset.filter;
+                    currentTag = null; // 清除标签筛选
+                    updateMovies();
+                });
+            });
+
+            // 标签筛选按钮事件
+            tagFilterBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // 更新活动状态
+                    tagFilterBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentTag = btn.dataset.tag;
+                    // 设置分类筛选为"更多"
+                    filterBtns.forEach(b => b.classList.remove('active'));
+                    const moreBtn = document.querySelector('[data-filter="more"]');
+                    if (moreBtn) {
+                        moreBtn.classList.add('active');
+                        currentFilter = 'more';
+                    }
+                    updateMovies();
+                });
+            });
+
+            // 排序选择事件
+            sortSelect.addEventListener('change', () => {
+                currentSort = sortSelect.value;
+                updateMovies();
+            });
+
+            // 更新电影显示
+            function updateMovies() {
+                let filteredMovies = [...movies];
+
+                // 应用分类筛选
+                if (currentFilter !== 'all') {
+                    if (currentFilter === 'popular') {
+                        // 假设前20部是热门，保持原始顺序
+                        filteredMovies = filteredMovies.slice(0, 20);
+                    } else if (currentFilter === 'time') {
+                        // 时间筛选：显示所有电影
+                    } else if (currentFilter === 'more') {
+                        if (currentTag) {
+                            // 按标签筛选
+                            filteredMovies = filteredMovies.filter(movie => movie.tags.includes(currentTag));
+                        }
+                    }
+                }
+
+                // 应用排序
+                // 所有筛选都按年份排序，包括热度筛选
+                if (currentFilter === 'popular') {
+                    // 热度筛选：对前20部电影应用排序
+                    filteredMovies.sort((a, b) => {
+                        const yearA = parseInt(a.year);
+                        const yearB = parseInt(b.year);
+                        return currentSort === 'asc' ? yearA - yearB : yearB - yearA;
+                    });
+                } else if (currentFilter === 'time') {
+                    // 时间筛选：强制按年份排序，确保时间顺序正确
+                    filteredMovies.sort((a, b) => {
+                        const yearA = parseInt(a.year);
+                        const yearB = parseInt(b.year);
+                        return currentSort === 'asc' ? yearA - yearB : yearB - yearA;
+                    });
+                } else {
+                    // 其他筛选（全部、标签）按年份排序
+                    filteredMovies.sort((a, b) => {
+                        const yearA = parseInt(a.year);
+                        const yearB = parseInt(b.year);
+                        return currentSort === 'asc' ? yearA - yearB : yearB - yearA;
+                    });
+                }
+
+                renderMovies(filteredMovies);
+            }
+
+            // 初始渲染
+            updateMovies();
+        }
+
+        // 初始化电影网格
+        document.addEventListener('DOMContentLoaded', initFilters);
+
+        // 随机播放背景视频
+        window.addEventListener('DOMContentLoaded', function() {
+            const bottomVideo = document.getElementById('bottomVideo');
+            if (bottomVideo) {
+                // 视频加载元数据后设置随机开始时间
+                bottomVideo.addEventListener('loadedmetadata', function() {
+                    // 设置随机开始时间
+                    const randomTime = Math.random() * bottomVideo.duration;
+                    bottomVideo.currentTime = randomTime;
+                });
+            }
+        });
+    </script>
+
+    <!-- 视频播放容器 -->
+    <div id="videoOverlay" class="video-overlay">
+        <video id="fullscreenVideo" class="fullscreen-video" loop>
+            <source src="sp/bro.mp4" type="video/mp4">
+            您的浏览器不支持HTML5视频。
+        </video>
+        <button id="closeVideo" class="close-video-btn">×</button>
+    </div>
+
+    <script>
+        // 获取元素
+        const aboutUsLink = document.getElementById('aboutUsLink');
+        const videoOverlay = document.getElementById('videoOverlay');
+        const fullscreenVideo = document.getElementById('fullscreenVideo');
+        const closeVideo = document.getElementById('closeVideo');
+
+        // 点击"关于我们"时显示视频
+        aboutUsLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            videoOverlay.style.display = 'flex';
+            // 播放视频
+            fullscreenVideo.play();
+        });
+
+        // 点击关闭按钮时隐藏视频
+        closeVideo.addEventListener('click', function() {
+            videoOverlay.style.display = 'none';
+            // 暂停视频
+            fullscreenVideo.pause();
+            // 重置视频到开始位置
+            fullscreenVideo.currentTime = 0;
+        });
+
+        // 点击视频区域外也可以关闭视频
+        videoOverlay.addEventListener('click', function(e) {
+            if (e.target === videoOverlay) {
+                videoOverlay.style.display = 'none';
+                fullscreenVideo.pause();
+                fullscreenVideo.currentTime = 0;
+            }
+        });
+    </script>
+
+    <style>
+        /* 视频覆盖层样式 */
+        .video-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 1);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        /* 全屏视频样式 */
+        .fullscreen-video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        /* 关闭按钮样式 */
+        .close-video-btn {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            background-color: rgba(255, 0, 0, 0.8);
+            color: white;
+            border: 2px solid white;
+            font-size: 36px;
+            font-weight: bold;
+            cursor: pointer;
+            padding: 10px 18px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            z-index: 10001;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+            line-height: 1;
+            display: block;
+            opacity: 1;
+        }
+
+        .close-video-btn:hover {
+            background-color: rgba(255, 0, 0, 1);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+            transform: scale(1.1);
+        }
+    </style>
+</body>
+</html>
